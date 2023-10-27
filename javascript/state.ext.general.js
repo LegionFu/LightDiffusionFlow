@@ -302,7 +302,7 @@ function general_ext(tab_name, extension_name, root_container) {
       handleTabs();
       handleCheckboxes();
       handleTextAreas();
-      handleSelects();
+      //handleSelects();
       handleSliders();
       handleRadioButtons();
     }, 500);

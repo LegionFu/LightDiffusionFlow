@@ -34,6 +34,10 @@ Webui_Comps = {} # webui上需要操作的图片组件
 Webui_Comps_Cur_Val = [] # 顺序与Image_Components_Key一致
 Output_Log = ""
 
+conponents_originlist = []
+extensions_conponents = {}
+txt2img_script_container = None
+
 Need_Preload = False
 Preload_File = r""
 File_extension = ".flow"
@@ -85,6 +89,9 @@ python触发导入事件，按正常触发逻辑先执行js代码，把除图片
 再用json2js的onchange事件触发js来点击隐藏按钮开始触发设置图片的事件队列。
 '''
 def on_after_component(component, **kwargs):
+  global txt2img_script_container
+
+  conponents_originlist.append(component)
 
   try:
     if(Webui_Comps.get(kwargs["elem_id"], None) == None):
@@ -92,7 +99,42 @@ def on_after_component(component, **kwargs):
   except BaseException as e:
     pass
 
+  # if(kwargs["elem_id"] == "txt2img_script_container"):
+  #   print(component)
+  if(txt2img_script_container == None):
+    temp = component
+    i = 10
+    while temp and i>0:
+      if(temp.elem_id == "txt2img_script_container"):
+        txt2img_script_container = temp
+        break
+      else:
+        temp = temp.parent
+        i-=1
+
   if (isinstance(component, gr.Button) and kwargs["elem_id"] == "change_checkpoint"): # 加载到最后一个组件了
+
+    for group in txt2img_script_container.children:
+      try:
+        print(group.children[0].label)
+        extensions_conponents[group.children[0].label] = []
+      except:
+        pass
+
+    for comp in conponents_originlist:
+      temp_parent  = comp.parent
+      while temp_parent:
+        try:
+          if(extensions_conponents.get(temp_parent.label, None) != None):
+            extensions_conponents[temp_parent.label].append(comp)
+            break
+        except:
+          pass
+        temp_parent = temp_parent.parent
+    
+    print(extensions_conponents) # 整理好的第三方插件用到的组件
+
+
     #print("LightDiffusionFlow绑定按钮")
 
     target_comps = []
@@ -428,7 +470,7 @@ class Script(scripts.Script):
 
   def ui(self, is_img2img):
     global File_extension
-
+    print("----------------------ui---------------------------")
     try:
       State_Comps["import"]
       State_Comps["export"]
